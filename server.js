@@ -6,7 +6,9 @@ const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+app.disable('x-powered-by');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -92,8 +94,9 @@ app.post('/api/optimize', upload.single('resume'), async (req, res) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      return res.status(response.status).json({
-        error: `Analysis service error: ${errText}`
+      console.error('Anthropic request failed', response.status, errText.slice(0, 500));
+      return res.status(502).json({
+        error: 'The analysis provider is temporarily unavailable.'
       });
     }
 
@@ -102,9 +105,9 @@ app.post('/api/optimize', upload.single('resume'), async (req, res) => {
     const parsed = extractJson(rawText);
 
     if (!parsed) {
+      console.error('Could not parse the analysis result.');
       return res.status(502).json({
-        error: 'Could not parse the analysis result.',
-        raw: rawText
+        error: 'The analysis provider returned an invalid response.'
       });
     }
 
