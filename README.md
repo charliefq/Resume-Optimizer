@@ -1,81 +1,64 @@
 # AI Resume Optimizer
 
-A premium web app that scores your resume against a job description and surfaces targeted improvements — built for competitive finance, consulting, and tech applications.
+A small portfolio MVP that compares a resume with a job description and returns structured, role-specific feedback.
 
 ## What it does
 
-Upload your resume (PDF or Word) and paste a job description. The app returns:
+- Accepts PDF and DOCX resume uploads
+- Extracts resume text on the server
+- Sends the resume and target job description to Anthropic
+- Returns a match score, five suggested improvements, and a rewritten professional summary
+- Keeps the provider API key on the server
 
-- An **Application Strength Score** from 0–100% (shown clearly)
-- **Areas Identified** and an **Optimized Summary** (blurred preview behind a paywall)
-- A one-time **$9 unlock** flow (frontend-only placeholder for now)
+## Project status
+
+This is an early demonstration project, not a production recruiting service.
+
+- The payment flow shown in the interface is a non-functional product mockup.
+- The score is model-generated guidance, not a validated hiring prediction.
+- Uploaded files are processed in memory and are not intentionally persisted by the application.
+- Production deployment would require authentication, rate limiting, stronger document validation, monitoring, and a published retention policy.
 
 ## Stack
 
-- **Backend:** Node.js + Express, file parsing (`pdf-parse`, `mammoth`), AI analysis API
-- **Frontend:** Single-page HTML / CSS / JS (no framework, no build step)
+- Node.js and Express
+- Multer for in-memory uploads
+- `pdf-parse` and `mammoth` for document extraction
+- Anthropic Messages API
+- Plain HTML, CSS, and JavaScript
 
-## Setup
+## Local setup
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Add your API key**
-
-   Copy `.env.example` to `.env` and add your key:
-   ```bash
-   cp .env.example .env
-   ```
-   ```
-   ANTHROPIC_API_KEY=sk-ant-...
-   ```
-
-3. **Run the server**
-   ```bash
-   npm start
-   ```
-
-4. **Open the app**
-
-   Visit [http://localhost:3000](http://localhost:3000).
-
-## Project structure
-
+```bash
+npm install
+cp .env.example .env
+# Add ANTHROPIC_API_KEY to .env
+npm start
 ```
-resume-optimizer/
-├── server.js        # Express server, file parsing, /api/optimize
-├── index.html       # Premium UI with upload + paywall
-├── package.json
-├── .env.example
-└── README.md
-```
+
+Open [http://localhost:3000](http://localhost:3000).
 
 ## API
 
-### `POST /api/optimize`
-
-Multipart form data:
+`POST /api/optimize` accepts multipart form data:
 
 | Field | Type | Description |
-|-------|------|-------------|
-| `resume` | file | PDF, .doc, or .docx (max 10 MB) |
-| `jobDescription` | string | Full job posting text |
+|---|---|---|
+| `resume` | file | PDF or DOCX, maximum 10 MB |
+| `jobDescription` | string | Target job posting |
 
-**Response:**
+Example response:
+
 ```json
 {
   "score": 78,
-  "improvements": ["...", "...", "...", "...", "..."],
+  "improvements": ["..."],
   "rewrittenSummary": "..."
 }
 ```
 
-The frontend shows the score openly and renders improvements/summary in a blurred locked state until payment is implemented.
+## Privacy and security notes
 
-## Notes
-
-- API keys are read server-side from `.env` only.
-- `.env` is gitignored — do not commit secrets.
-- Payment (`#payment-coming-soon`) is not wired up yet.
+- Do not commit `.env`; it is ignored by Git.
+- Provider failures are logged server-side without returning raw upstream error bodies to the browser.
+- Do not upload sensitive resumes to an untrusted deployment of this demo.
